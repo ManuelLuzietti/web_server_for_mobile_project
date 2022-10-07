@@ -86,6 +86,40 @@ class DtabaseHelper {
     }
     public function insertFantaBoulder($name,$grade,$date,$isofficial,$img,$userId){
         $idBoulder = $this->insertBoulder($name,$grade,$date,$isofficial,$img);
-        return $this->insertTracciatura($idBoulder,$userId);
+        //return $this->insertTracciatura($idBoulder,$userId);
+    }
+
+    public function getFantaBouldersAndTracciatore(){
+        $query = "select u.username as tracciatore,f.* from fantaboulder f join user u on (u.id = f.user_id)";
+        $stmt = $this->db->prepare($query);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+
+    }
+
+    public function removeFantaBoulder($fantaId){
+        $query = "DELETE FROM `fantaboulder` WHERE `fantaboulder`.`id` = ?";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param("i",$fantaId);
+        $stmt->execute();
+    }
+
+    public function getFantaboulder($id){
+        $query = "select * from fantaboulder where id = ?";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param("i",$id);
+        $stmt->execute();
+        return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
+    }
+    public function promoveFantaboulderToBoulder($fantaboulderId){
+        $fantaboulders = $this->getFantaboulder($fantaboulderId);
+        if(sizeof($fantaboulders)==0){
+            return;
+        }
+        $fantaboulder = $fantaboulders[0];
+        $newBoulderId = $this->insertBoulder($fantaboulder["name"],$fantaboulder["grade"],$fantaboulder["date"],false,$fantaboulder["img"]);
+        $this->insertTracciatura($newBoulderId,$fantaboulder["user_id"]);
+
+        $this->removeFantaBoulder($fantaboulderId);
     }
 }
