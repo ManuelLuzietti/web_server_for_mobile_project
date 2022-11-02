@@ -13,5 +13,13 @@
         return $json;
     }
 
+     function storeImgFromData($data,$fileName){
+        $data = base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $data));
+        file_put_contents("img/".$fileName, $data);
+    }
+
+    function generateImgName($id){
+        return "img".uniqid('uploaded-', true).".jpeg";
+    }
  
 ?>

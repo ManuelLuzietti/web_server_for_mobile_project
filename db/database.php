@@ -40,11 +40,18 @@ class DtabaseHelper {
         return $stmt->get_result()->fetch_all(MYSQLI_ASSOC);
     }
 
-    public function registerUser($username,$password,$firstname,$lastname){
+    public function checkUsername($username){
         $stmt = $this->db->prepare("select * from user where username =  ?");
         $stmt->bind_param("s",$username);
         $stmt->execute();
         if(sizeof($stmt->get_result()->fetch_all(MYSQLI_ASSOC))!= 0){
+            return false;
+        }
+        return true;
+    }
+
+    public function registerUser($username,$password,$firstname,$lastname){
+        if($this->checkUsername($username)){
             echo "registration failed";
         } else {
             $stmt = $this->db->prepare("insert into user(username,password,first_name,last_name) values (?,?,?,?)");
@@ -61,9 +68,9 @@ class DtabaseHelper {
         $stmt->bind_param("s",$name);
         $stmt->execute();
         if(sizeof($stmt->get_result()->fetch_all(MYSQLI_ASSOC))== 0){
-            echo "booulder name already taken";
+            echo "name_check_ok";
         } else {
-            echo "boulder name available";
+            echo "name_check_fail";
         }
     }
 
@@ -84,9 +91,12 @@ class DtabaseHelper {
         $stmt->execute();
         return $stmt->insert_id;
     }
-    public function insertFantaBoulder($name,$grade,$date,$isofficial,$img,$userId){
-        $idBoulder = $this->insertBoulder($name,$grade,$date,$isofficial,$img);
-        //return $this->insertTracciatura($idBoulder,$userId);
+    public function insertFantaBoulder($name,$grade,$date,$img,$userId){
+        $query = "INSERT INTO `fantaboulder` ( `name`, `grade`, `date`, `img`,`user_id`) VALUES (?,?,?,?,?)";
+        $stmt = $this->db->prepare($query);
+        $stmt->bind_param("ssssi",$name,$grade,$date,$img,$userId);
+        $stmt->execute();
+        return $stmt->insert_id;        //return $this->insertTracciatura($idBoulder,$userId);
     }
 
     public function getFantaBouldersAndTracciatore(){
@@ -119,7 +129,52 @@ class DtabaseHelper {
         $fantaboulder = $fantaboulders[0];
         $newBoulderId = $this->insertBoulder($fantaboulder["name"],$fantaboulder["grade"],$fantaboulder["date"],false,$fantaboulder["img"]);
         $this->insertTracciatura($newBoulderId,$fantaboulder["user_id"]);
-
         $this->removeFantaBoulder($fantaboulderId);
+    }
+
+    public function updateFirstname($firstname,$id){
+        $sql = "update user set first_name='${firstname}' where id=${id}";
+        return mysqli_query($this->db,$sql);
+    }
+    public function updateLastname($lastname,$id){
+        $sql = "update user set last_name='${lastname}' where id=${id}";
+        return mysqli_query($this->db,$sql);
+    }
+
+    public function updateUsername($username,$id){
+        $sql = "update user set username='${username}' where id=${id}";
+        return mysqli_query($this->db,$sql);
+    }
+
+    public function insertComment($text,$rating,$grade,$user_id){
+        $sql = NULL;
+        $stmt = NULL;
+
+        if(strcmp($text,'""')==0){
+            $sql = "insert into comment (text,rating,grade,user_id) value (null,?,?,?)";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("isi",$rating,$grade,$user_id);
+        } else {
+            $sql = "insert into comment (text,rating,grade,user_id) value (?,?,?,?)";
+            $stmt = $this->db->prepare($sql);
+            $stmt->bind_param("sisi",$text,$rating,$grade,$user_id);
+        }
+        $stmt->execute();
+        return $stmt->insert_id;
+    }
+
+    public function insertCompletedBoulder($commentId,$date,$user_id,$boulderId,$numOfTries){
+        $sql = "insert into completed_boulder(comment_id,date,user_id,boulder_id,number_of_tries) value (?,?,?,?,?)";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("isiii",$commentId,$date,$user_id,$boulderId,$numOfTries);
+        return $stmt->execute();
+
+    }
+
+    public function deleteComment($id){
+        $sql = "delete from comment where id = ?";
+        $stmt = $this->db->prepare($sql);
+        $stmt->bind_param("i",$id);
+        $stmt->execute();
     }
 }
