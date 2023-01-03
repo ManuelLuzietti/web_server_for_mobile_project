@@ -50,7 +50,7 @@ if(isset($_GET["method"]) || isset($_POST["method"])){
         die;
     } 
     if(($_GET["method"] == "registration") && isset($_GET["username"]) && isset($_GET["password"]) && isset($_GET["firstname"]) && isset($_GET["lastname"])){
-        $db->registerUser($_GET["username"],$_GET["password"],$_GET["firstname"],$_GET["lastname"]);
+        echo $db->registerUser($_GET["username"],$_GET["password"],$_GET["firstname"],$_GET["lastname"]);
         die;
     }
     

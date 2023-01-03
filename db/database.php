@@ -51,14 +51,15 @@ class DtabaseHelper {
     }
 
     public function registerUser($username,$password,$firstname,$lastname){
-        if($this->checkUsername($username)){
-            echo "registration failed";
+        if(!$this->checkUsername($username)){
+            return "registration failed";
         } else {
             $stmt = $this->db->prepare("insert into user(username,password,first_name,last_name) values (?,?,?,?)");
             $stmt->bind_param("ssss",$username,$password,$firstname,$lastname);
             if( $stmt->execute()){
-                echo "registration success";
+                return "registration success";
             }
+            return "registration failure";
         }
     }
 
